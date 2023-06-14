@@ -1,0 +1,114 @@
+* {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+    /*box-sizing: border-box;*/
+  }
+
+body {
+background: url('https://images.unsplash.com/photo-1532210317995-cc56d90177d9?ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80') center;
+background-size: cover;
+min-height: 600px;
+font-family: 'Helvetica Neue', sans-serif;
+}
+
+nav {
+  text-align: center;
+  background-color: black;
+  float: top;
+  display: inline-block;
+  height: 8vh;
+  width: 100%;
+  /*overflow: hidden;*/
+}
+
+.menu {
+display: inline-block;
+  height: 8vh;
+ width: 100%;
+  list-style-type: none;
+  padding-top: 2vh;
+  margin-left: 30px;
+}
+
+.menu-element {
+float: left;
+color: white;
+width: 200px;
+/*height: 40px;*/
+/*line-height: 40px;*/
+  margin-right: 50px;
+/*background: rgba(0, 0, 0, 0.7);*/
+cursor: pointer;
+font-size: 17px;
+}
+
+.menu-element:last-child{
+  float:right;
+  margin-right: 20px;
+
+}
+.sub-menu {
+transform: scale(0);
+transform-origin: top center;
+transition: all 300ms ease-in-out;
+  margin-left:0;
+}
+.sub-menu li {
+            display: none;
+font-size: 14px;
+background: rgba(0, 0, 0, 0.8);
+padding: 8px 0;
+color: white;
+border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+transform: scale(0);
+transform-origin: top center;
+transition: all 300ms ease-in-out;
+}
+.sub-menu li:last-child {
+border-bottom: 0;
+}
+.sub-menu li:hover {
+background: black;
+}
+.menu>li:hover .sub-menu li {
+  display:block;
+transform: scale(1);
+
+}
+.menu>li:hover .sub-menu {
+  display: block;
+transform: scale(1);
+}
+
+.navbar-text{
+    text-decoration: none;
+    font-size: 3vh;
+    font-weight: bolder;
+    color: white;
+}
+.navbar-dropdowntext{
+    text-decoration: none;
+    font-size: 2vh;
+    font-weight: bolder;
+    color: white;
+}
+
+.navbar-text:hover, .navbar-dropdowntext:hover{
+    color: #fff;
+    text-shadow:
+    0 0 7px #fff,
+    0 0 10px #fff,
+    0 0 21px #fff,
+    0 0 42px #0fa,
+    0 0 82px #0fa,
+    0 0 92px #0fa,
+    0 0 102px #0fa,
+    0 0 151px #0fa;
+}
+
+.dateinput ::-webkit-calendar-picker-indicator{
+    display: none;
+    -webkit-appearance: none;
+}
+
