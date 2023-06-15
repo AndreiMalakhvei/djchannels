@@ -17,6 +17,13 @@ const Header = () => {
                     <NavLink to='/chat' className="navbar-text">Chat</NavLink>
                 </li>
 
+                { user &&
+                    <li className="menu-element">
+                        <p>Welcome, {user.username} !</p>
+                </li>
+                }
+
+
                 { user?
                     (<li className="menu-element">
                      <NavLink to='/#' onClick={logoutUser} className="navbar-text">LogOut</NavLink>

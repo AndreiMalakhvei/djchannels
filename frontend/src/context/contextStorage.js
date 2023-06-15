@@ -27,10 +27,7 @@ export const AuthProvider = ({children}) => {
                 let data = response.data
                 if (response.status === 200) {
                     setAuthTokens(data)
-                    console.log("successfully logged in")
-                    console.log(data)
                     setUser(jwt_decode(data.access))
-                    console.log(jwt_decode(data.access))
                     localStorage.setItem('authTokens', JSON.stringify(data))
                     history.push('/')
                 }
@@ -46,26 +43,26 @@ export const AuthProvider = ({children}) => {
     }
 
 
-    // const updateToken = async() => {
-    //     console.log("Token updated")
-    //     axios.post("http://127.0.0.1:8000/api/v1/api/token/refresh/",
-    //         {"refresh": authTokens?.refresh},
-    //         // {headers: {"Content-Type": "application/json"}}
-    //     )
-    //         .then(response => {
-    //             let data = response.data
-    //             if (response.status === 200) {
-    //                 setAuthTokens(data)
-    //                 setUser(jwt_decode(data.access))
-    //                 localStorage.setItem('authTokens', JSON.stringify(data))
-    //             } else{
-    //                  logoutUser()
-    //             }
-    //         })
-    //     if(loading){
-    //         setLoading(true)
-    //     }
-    // }
+    const updateToken = async() => {
+        console.log("Token updated")
+        axios.post("http://127.0.0.1:8000/api/v1/api/token/refresh/",
+            {"refresh": authTokens?.refresh},
+            // {headers: {"Content-Type": "application/json"}}
+        )
+            .then(response => {
+                let data = response.data
+                if (response.status === 200) {
+                    setAuthTokens(data)
+                    setUser(jwt_decode(data.access))
+                    localStorage.setItem('authTokens', JSON.stringify(data))
+                } else{
+                     logoutUser()
+                }
+            })
+        if(loading){
+            setLoading(true)
+        }
+    }
 
     //  useEffect(()=> {
     //     if(loading){
