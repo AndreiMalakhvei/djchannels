@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, {useState, useEffect, useContext} from "react";
+import ContextStorage from "./context/contextStorage";
 
 
 function Chat() {
 
-
+  let {user} = useContext(ContextStorage)
 
   const [socket, setSocket] = useState(null);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
 
   useEffect(() => {
-
 
     // Connect to the WebSocket server with the username as a query parameter
     const newSocket = new WebSocket(`ws://localhost:8000/ws/chat/11/`);
@@ -29,7 +29,10 @@ function Chat() {
     if (socket) {
       socket.onmessage = (event) => {
         const data = JSON.parse(event.data);
+        console.log(data)
         setMessages((prevMessages) => [...prevMessages, data]);
+        console.log(messages)
+
       };
     }
   }, [socket]);
@@ -37,9 +40,12 @@ function Chat() {
   const handleSubmit = (event) => {
     event.preventDefault();
     if (message && socket) {
+      let jetzt = new Date()
       const data = {
         message: message,
-        // username: username,
+        username: user.username,
+        jetzt: jetzt.getTime(),
+        userid: user.user_id
       };
       socket.send(JSON.stringify(data));
       setMessage("");
@@ -53,7 +59,9 @@ function Chat() {
         {messages.map((message, index) => (
           <div key={index} className="message">
             <div className="message-content">{message.message}</div>
-            <div className="message-timestamp">{message.timestamp}</div>
+            <div className="message-timestamp">{message.username}</div>
+            <div className="message-timestamp">{message.nowdate}</div>
+            <div className="message-timestamp">{message.nowtime}</div>
           </div>
         ))}
       </div>
