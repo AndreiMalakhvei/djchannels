@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useContext} from "react";
 import ContextStorage from "./context/contextStorage";
-
+import styled from "./Chat.module.css"
 
 function Chat() {
 
@@ -53,28 +53,42 @@ function Chat() {
   };
 
   return (
-    <div className="chat-container">
-      <div className="chat-header">Chat</div>
-      <div className="message-container">
-        {messages.map((message, index) => (
-          <div key={index} className="message">
-            <div className="message-content">{message.message}</div>
-            <div className="message-timestamp">{message.username}</div>
-            <div className="message-timestamp">{message.nowdate}</div>
-            <div className="message-timestamp">{message.nowtime}</div>
-          </div>
-        ))}
+      <div className="chat-container">
+        <div className={styled.postwrapper}>
+
+          {messages.map((message, index) => (
+              <div key={index} className={styled.post}>
+                <div className={styled.postheader}>
+                  <p>{message.username}</p>
+                </div>
+                <div className={styled.postmain}>
+                  <div className={styled.postavatar}>
+                    <div className={styled.avatarcircle}></div>
+                  </div>
+                  <div className={styled.postmessage}>
+                    <p>{message.message}</p>
+                  </div>
+                </div>
+                <div className={styled.postfooter}>
+                  <p>{message.nowdate}, {message.nowtime}</p>
+                </div>
+
+              </div>
+          ))}
+
+        </div>
+
+
+        <form onSubmit={handleSubmit}>
+          <input
+              type="text"
+              placeholder="Type a message..."
+              value={message}
+              onChange={(event) => setMessage(event.target.value)}
+          />
+          <button type="submit">Send</button>
+        </form>
       </div>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Type a message..."
-          value={message}
-          onChange={(event) => setMessage(event.target.value)}
-        />
-        <button type="submit">Send</button>
-      </form>
-    </div>
   );
 }
 export default Chat;
