@@ -29,10 +29,7 @@ function Chat() {
     if (socket) {
       socket.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        console.log(data)
         setMessages((prevMessages) => [...prevMessages, data]);
-        console.log(messages)
-
       };
     }
   }, [socket]);
