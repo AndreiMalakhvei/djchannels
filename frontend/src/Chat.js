@@ -13,7 +13,7 @@ function Chat() {
   useEffect(() => {
 
     // Connect to the WebSocket server with the username as a query parameter
-    const newSocket = new WebSocket(`ws://localhost:8000/ws/chat/11/`);
+    const newSocket = new WebSocket(`ws://localhost:8000/ws/chat/11/?user=${user.user_id}`);
     setSocket(newSocket);
 
     newSocket.onopen = () => console.log("WebSocket connected");
