@@ -7,10 +7,10 @@ from django.contrib.auth.models import User
 @app.task
 def messages_to_db():
     rooms = Room.objects.select_related()
+    data_to_add = []
     for room in rooms:
         cached_messages_to_save = cache.get("chat_%s" % room.name)
         if cached_messages_to_save:
-            data_to_add = []
             for message in cached_messages_to_save:
                 new_item = Message(
                 hash=message["item_hash"],
@@ -20,5 +20,6 @@ def messages_to_db():
                 inroom=room,
                 )
                 data_to_add.append(new_item)
-            Message.objects.bulk_create(data_to_add)
+    if data_to_add:
+        Message.objects.bulk_create(data_to_add)
 

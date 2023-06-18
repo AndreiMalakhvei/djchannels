@@ -1,13 +1,21 @@
-import React, {useContext, useState} from "react";
+import React, {useContext, useState, useEffect} from "react";
 import PopupModal from "../components/UI/PopupModal";
 import ContextStorage from "../context/contextStorage";
 import axios from "axios";
-import { useHistory } from 'react-router-dom';
+import {NavLink, useHistory} from 'react-router-dom';
 
 const Home= () => {
     let {user} = useContext(ContextStorage)
     const [error, setError] = useState()
     const history = useHistory();
+
+    const [roomsList, setRoomsList] = useState([])
+
+     useEffect( () =>{
+       axios
+        .get('http://127.0.0.1:8000/chatapi/roomslist/')
+        .then(response => {setRoomsList(response.data)})
+    }, []);
 
     const modalHandler = (e) => {
         setError({
@@ -57,6 +65,15 @@ const Home= () => {
                 <button type="submit">CREATE</button>
             </form>
 
+            {roomsList &&
+            <div>
+                {roomsList.map(
+                    room =>
+                        <div key={room.name}>
+                        <NavLink to={`chat/${room.name}`} >{room.name}</NavLink>
+                        </div>
+                )}
+            </div> }
 
 
         </div>

@@ -2,6 +2,7 @@ import React, {useState, useEffect, useContext, useRef} from "react";
 import ContextStorage from "./context/contextStorage";
 import styled from "./Chat.module.css"
 import {useParams} from "react-router-dom";
+import axios from "axios";
 
 function Chat() {
   const params = useParams()
@@ -10,6 +11,14 @@ function Chat() {
   const [socket, setSocket] = useState(null);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
+
+   useEffect( () =>{
+         axios
+          .get(`http://127.0.0.1:8000/chatapi/chathistory/`, {params: {name: params.chatId}})
+          .then(response => {setMessages(response.data)
+          console.log(response.data)})
+      }, []);
+
 
   useEffect(() => {
 

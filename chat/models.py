@@ -17,14 +17,14 @@ class Message(models.Model):
     text = models.TextField()
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     timest = models.IntegerField()
-    created = models.DateTimeField
+    created = models.DateTimeField(default=datetime.now)
     inroom = models.ForeignKey(Room, on_delete=models.CASCADE)
 
     def __str__(self):
         return f'{self.author} : {self.text}'
 
     def save(self, *args, **kwargs):
-        self.created = datetime.fromtimestamp(int(self.timest))
+        self.created = datetime.fromtimestamp(self.timest)
         super().save(*args, **kwargs)
 
 
