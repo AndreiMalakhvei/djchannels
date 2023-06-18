@@ -16,7 +16,7 @@ function App() {
                         <Redirect to='/home'/>
                     </Route>
                     <Route component={Home} path='/home/' />
-                    <Route component={Chat} path='/chat/' />
+                    <Route component={Chat} path='/chat/:chatId'/>
                     <Route component={Login} path='/login/' />
                 </div>
                 </React.Fragment>

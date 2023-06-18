@@ -18,7 +18,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
 
 
 urlpatterns = [
-    path("chat/", include("chat.urls")),
+    path("chatapi/", include("chat.urls")),
     path("admin/", admin.site.urls),
     path('ws/', include(routing.websocket_urlpatterns)),
     ]

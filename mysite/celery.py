@@ -11,6 +11,6 @@ app.autodiscover_tasks()
 app.conf.beat_schedule = {
     'retrieve_messages_from_cache_and_save_to_db': {
         'task': 'chat.tasks.messages_to_db',
-        'schedule': crontab(minute='*/1')
+        'schedule': crontab(minute='*/5')
     },
 }

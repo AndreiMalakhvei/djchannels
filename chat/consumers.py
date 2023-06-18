@@ -4,6 +4,8 @@ from asgiref.sync import async_to_sync
 from django.core.cache import cache
 from channels.generic.websocket import WebsocketConsumer
 import hashlib
+from chat.tasks import messages_to_db
+
 
 class ChatConsumer(WebsocketConsumer):
     def connect(self):
@@ -23,6 +25,8 @@ class ChatConsumer(WebsocketConsumer):
         async_to_sync(self.channel_layer.group_discard)(
             self.room_group_name, self.channel_name
         )
+
+        # messages_to_db.delay()
 
     # Receive message from WebSocket
     def receive(self, text_data=None, bytes_data=None):
@@ -63,6 +67,8 @@ class ChatConsumer(WebsocketConsumer):
         # Send message to room group
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name, forward_to_front)
+
+
 
     # Receive message from room group
     def chat_message(self, event):

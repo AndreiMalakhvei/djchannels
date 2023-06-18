@@ -1,11 +1,12 @@
-import React, {useState, useEffect, useContext} from "react";
+import React, {useState, useEffect, useContext, useRef} from "react";
 import ContextStorage from "./context/contextStorage";
 import styled from "./Chat.module.css"
+import {useParams} from "react-router-dom";
 
 function Chat() {
+  const params = useParams()
 
   let {user} = useContext(ContextStorage)
-
   const [socket, setSocket] = useState(null);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
@@ -13,7 +14,7 @@ function Chat() {
   useEffect(() => {
 
     // Connect to the WebSocket server with the username as a query parameter
-    const newSocket = new WebSocket(`ws://localhost:8000/ws/chat/11/?user=${user.user_id}`);
+    const newSocket = new WebSocket(`ws://localhost:8000/ws/chat/${params.chatId}/?user=${user.user_id}`);
     setSocket(newSocket);
 
     newSocket.onopen = () => console.log("WebSocket connected");
