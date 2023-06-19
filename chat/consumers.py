@@ -12,7 +12,6 @@ from chat.tasks import messages_to_db
 TIMEOUT_FOR_CACHING_MESSAGES = 60 * 60
 
 class ChatConsumer(WebsocketConsumer):
-    connections_set = set()
 
     def connect(self):
         self.room_name = self.scope["url_route"]["kwargs"]["room_name"]
@@ -23,9 +22,15 @@ class ChatConsumer(WebsocketConsumer):
         async_to_sync(self.channel_layer.group_add)(
             self.room_group_name, self.channel_name
         )
-        self.connections_set.add(self.userid)
-        print(f'FOR ROOM {self.room_group_name} the following users are loggedin: {self.connections_set}')
 
+        cached_data = cache.get("act_%s" % self.room_name)
+        if cached_data:
+            cached_data.update({self.userid: False})
+            cache.set("act_%s" % self.room_name,cached_data)
+        else:
+            cache.set("act_%s" % self.room_name, {self.userid: False})
+
+        # print(f'changes in ACT_ROOM {self.room_name} : {cache.get("act_%s" % self.room_name)}')
         self.accept()
 
     def disconnect(self, close_code):
@@ -33,17 +38,11 @@ class ChatConsumer(WebsocketConsumer):
         async_to_sync(self.channel_layer.group_discard)(
             self.room_group_name, self.channel_name
         )
-        self.connections_set.discard(self.userid)
-        print(f'FOR ROOM {self.room_group_name} the following users are loggedin: {self.connections_set}')
-        # messages_to_db()
+
+
 
     # Receive message from WebSocket
     def receive(self, text_data=None, bytes_data=None):
-
-        channel_layer = get_channel_layer()
-
-
-
         text_data_json = json.loads(text_data)
         jetzt = datetime.fromtimestamp(text_data_json["jetzt"]/1000)
         py_timestamp = datetime.timestamp(jetzt)
@@ -62,6 +61,8 @@ class ChatConsumer(WebsocketConsumer):
             "nowtime": jetzt.strftime("%H:%M:%S")
         }
 
+
+
         if cache.get(self.room_group_name):
             existing_value = cache.get(self.room_group_name)
             existing_value.append(message_to_cache)
@@ -74,13 +75,31 @@ class ChatConsumer(WebsocketConsumer):
             "type": "chat_message",
             "jetzt": jetzt_to_forward,
         }
-
         forward_to_front = message_to_cache | message_extra_data
+
+        users_to_notify = cache.get("act_%s" % self.room_name)
+
+        if users_to_notify:
+            for x in users_to_notify:
+                if x != self.userid:
+                    users_to_notify[x] = True
+                else:
+                    users_to_notify[x] = False
+            cache.set("act_%s" % self.room_name, users_to_notify)
+
+        # print(f'changes in ACT_ROOM {self.room_name} : {cache.get("act_%s" % self.room_name)}')
+
 
 
         # Send message to room group
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name, forward_to_front)
+
+        # async_to_sync(self.channel_layer.group_send)(
+        #     self.room_group_name, {
+        #     "type": "test.def",
+        #     "message": "Hi!!!!",
+        # })
 
 
 
@@ -101,3 +120,8 @@ class ChatConsumer(WebsocketConsumer):
                                         "jetzt": jetzt,
                                         "userid": userid
                                         }))
+
+
+    def test_def(self, event):
+        print('I WAS REACHED!!!!!!!!!!!!!!!!!')
+        print()

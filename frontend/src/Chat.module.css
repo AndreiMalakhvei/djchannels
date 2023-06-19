@@ -1,5 +1,27 @@
-.postwrapper{
+.dashboardwrappper{
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.channelslistwrapper{
+    width: 20%;
+    background-color: cornsilk;
+}
+
+.chatcontainer{
     width: 60%;
+}
+
+.userslistwrapper{
+    width: 20%;
+    background-color: azure;
+}
+
+
+
+.postwrapper{
+    width: 80%;
     height: 700px;
     margin: 20px;
     padding:10px;

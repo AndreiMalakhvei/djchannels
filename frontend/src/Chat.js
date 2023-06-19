@@ -3,6 +3,8 @@ import ContextStorage from "./context/contextStorage";
 import styled from "./Chat.module.css"
 import {useParams} from "react-router-dom";
 import axios from "axios";
+import Participants from "./components/buildblocks/Participants";
+import MyRooms from "./components/buildblocks/MyRooms";
 
 function Chat() {
   const params = useParams()
@@ -11,10 +13,21 @@ function Chat() {
   const [socket, setSocket] = useState(null);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
+  const [listParticipants, setListParticipants] = useState([])
+  const [chatID, setChatIt] = useState(params.chatId)
+  // const [myRooms, setMyRooms] = useState({})
+
+  // useEffect( () =>{
+  //      axios
+  //       .get('http://127.0.0.1:8000/chatapi/roomslist/')
+  //       .then(response => {setMyRooms(response.data)
+  //       console.log(response.data)})
+  //   }, []);
+
 
    useEffect( () =>{
          axios
-          .get(`http://127.0.0.1:8000/chatapi/chathistory/`, {params: {name: params.chatId}})
+          .get(`http://127.0.0.1:8000/chatapi/chathistory/`, {params: {name: chatID}})
           .then(response => {setMessages(response.data)
           console.log(response.data)})
       }, []);
@@ -59,10 +72,17 @@ function Chat() {
     }
   };
 
-  return (
-      <div className="chat-container">
-        <div className={styled.postwrapper}>
 
+  return (
+      <div className={styled.dashboardwrappper}>
+       <div className={styled.channelslistwrapper}>
+         <div className={styled.userslistwrapper}>
+          <MyRooms />
+        </div>
+       </div>
+
+      <div className={styled.chatcontainer}>
+        <div className={styled.postwrapper}>
           {messages.map((message, index) => (
               <div key={index} className={styled.post}>
                 <div className={styled.postheader}>
@@ -79,13 +99,10 @@ function Chat() {
                 <div className={styled.postfooter}>
                   <p>{message.nowdate}, {message.nowtime}</p>
                 </div>
-
               </div>
           ))}
 
         </div>
-
-
         <form onSubmit={handleSubmit}>
           <input
               type="text"
@@ -96,6 +113,12 @@ function Chat() {
           <button type="submit">Send</button>
         </form>
       </div>
+
+        <div className={styled.userslistwrapper}>
+          <Participants />
+        </div>
+
+  </div>
   );
 }
 export default Chat;

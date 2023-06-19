@@ -14,7 +14,8 @@ const Home= () => {
      useEffect( () =>{
        axios
         .get('http://127.0.0.1:8000/chatapi/roomslist/')
-        .then(response => {setRoomsList(response.data)})
+        .then(response => {setRoomsList(response.data)
+        })
     }, []);
 
     const modalHandler = (e) => {
