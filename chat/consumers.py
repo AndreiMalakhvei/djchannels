@@ -13,6 +13,8 @@ TIMEOUT_FOR_CACHING_MESSAGES = 60 * 60
 
 class ChatConsumer(WebsocketConsumer):
 
+    service_group = "service"
+
     def connect(self):
         self.room_name = self.scope["url_route"]["kwargs"]["room_name"]
         self.room_group_name = "chat_%s" % self.room_name
@@ -21,6 +23,11 @@ class ChatConsumer(WebsocketConsumer):
         # Join room group
         async_to_sync(self.channel_layer.group_add)(
             self.room_group_name, self.channel_name
+        )
+
+        # join service group
+        async_to_sync(self.channel_layer.group_add)(
+            self.service_group, self.channel_name
         )
 
         cached_data = cache.get("act_%s" % self.room_name)
@@ -38,7 +45,6 @@ class ChatConsumer(WebsocketConsumer):
         async_to_sync(self.channel_layer.group_discard)(
             self.room_group_name, self.channel_name
         )
-
 
 
     # Receive message from WebSocket
@@ -95,6 +101,13 @@ class ChatConsumer(WebsocketConsumer):
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name, forward_to_front)
 
+        # Send message to service group
+        async_to_sync(self.channel_layer.group_send)(
+            self.service_group, {
+                "type": "chat.service",
+                "message": "Notification from service group"
+            })
+
         # async_to_sync(self.channel_layer.group_send)(
         #     self.room_group_name, {
         #     "type": "test.def",
@@ -118,10 +131,13 @@ class ChatConsumer(WebsocketConsumer):
                                         "nowdate": nowdate,
                                         "nowtime": nowtime,
                                         "jetzt": jetzt,
-                                        "userid": userid
+                                        "userid": userid,
+                                        "mark": "chat message"
                                         }))
 
 
-    def test_def(self, event):
+    def chat_service(self, event):
+        self.send(text_data=json.dumps({"message": event['message'],
+                                        "mark": "service"}))
         print('I WAS REACHED!!!!!!!!!!!!!!!!!')
-        print()
+

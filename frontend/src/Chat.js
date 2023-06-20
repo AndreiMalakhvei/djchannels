@@ -46,10 +46,14 @@ function Chat() {
   useEffect(() => {
     if (socket) {
       socket.onmessage = (event) => {
-
         const data = JSON.parse(event.data);
-        console.log(data)
-        setMessages((prevMessages) => [...prevMessages, data]);
+        console.log(data.mark)
+          if (data.mark === "service") {
+              console.log("Mark service works")
+          }
+          else {
+              setMessages((prevMessages) => [...prevMessages, data]);
+          }
       };
     }
   }, [socket]);
