@@ -47,9 +47,8 @@ function Chat() {
     if (socket) {
       socket.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        console.log(data.mark)
           if (data.mark === "service") {
-              console.log("Mark service works")
+              console.log(data)
           }
           else {
               setMessages((prevMessages) => [...prevMessages, data]);
