@@ -32,8 +32,10 @@ function Chat() {
 
   useEffect(() => {
     // Connect to the WebSocket server with the username as a query parameter
-    const newSocket = new WebSocket(`ws://localhost:8000/ws/chat/${params.chatId}/?user=${user.user_id}`);
+      console.log(`connecting to new room ${chatID}`)
+    const newSocket = new WebSocket(`ws://localhost:8000/ws/chat/${chatID}/?user=${user.user_id}`);
     setSocket(newSocket);
+    window.history.replaceState("", "",`http://localhost:3000/chat/${chatID}/`)
     newSocket.onopen = () => console.log("WebSocket connected");
     newSocket.onclose = () => console.log("WebSocket disconnected");
     return () => {
@@ -44,7 +46,9 @@ function Chat() {
   useEffect(() => {
     if (socket) {
       socket.onmessage = (event) => {
+
         const data = JSON.parse(event.data);
+        console.log(data)
         setMessages((prevMessages) => [...prevMessages, data]);
       };
     }
