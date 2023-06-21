@@ -57,8 +57,14 @@ class ChatConsumer(WebsocketConsumer):
             self.service_group, self.channel_name
         )
 
-        someval = get_unread(self.fire_id)
-        print(someval)
+        # send to front dict with number of unread messages for each room
+        missed_messages = get_unread(self.fire_id)
+
+
+        async_to_sync(self.channel_layer.send)(
+            self.channel_name, {"type": "chat.missed",
+                                "missed_messages": missed_messages }
+        )
 
         #  check if entered room and user (as room member) exist in RealTimeDB
         room_exists = fire_db.child('main').child('unread').child(self.room_name).get().val()
@@ -72,7 +78,7 @@ class ChatConsumer(WebsocketConsumer):
 
 
 
-        # delete unread messages for the chat while ntering the chat
+        # delete unread messages for the chat while entering the chat
         users_unread_messages = fire_db.child('main').child('unread').child(self.room_name).child(self.fire_id).get().val()
         if users_unread_messages:
             fire_db.child('main').child('unread').child(self.room_name).child(self.fire_id).set(0)
@@ -86,6 +92,12 @@ class ChatConsumer(WebsocketConsumer):
         async_to_sync(self.channel_layer.group_discard)(
             self.room_group_name, self.channel_name
         )
+
+        # delete unread messages for the chat while leaving the chat
+        users_unread_messages = fire_db.child('main').child('unread').child(self.room_name).child(
+            self.fire_id).get().val()
+        if users_unread_messages:
+            fire_db.child('main').child('unread').child(self.room_name).child(self.fire_id).set(0)
 
 
     # Receive message from WebSocket
@@ -152,13 +164,6 @@ class ChatConsumer(WebsocketConsumer):
                 "chat": self.room_name
             })
 
-        # async_to_sync(self.channel_layer.group_send)(
-        #     self.room_group_name, {
-        #     "type": "test.def",
-        #     "message": "Hi!!!!",
-        # })
-
-
 
     # Receive message from room group
     def chat_message(self, event):
@@ -185,11 +190,13 @@ class ChatConsumer(WebsocketConsumer):
             for x in event['notifications']:
                 if x == self.fire_id and event['notifications'][x]:
                     quantity = len(event['notifications'][x])
-
                     self.send(text_data=json.dumps({"mark": 'service',
                                                     "chat": event['chat'],
                                                     "quantity": quantity
                                                     }))
                     break
 
+    def chat_missed(self, event):
+        self.send(text_data=json.dumps({"mark": 'missed',
+                                        "missed": event['missed_messages']}))
 

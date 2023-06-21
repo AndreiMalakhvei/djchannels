@@ -6,6 +6,7 @@ import axios from "axios";
 import Participants from "./components/buildblocks/Participants";
 import MyRooms from "./components/buildblocks/MyRooms";
 import MessagesDisplay from "./components/buildblocks/MessagesDisplay";
+import PopupInvite from "./components/buildblocks/PopupInvite";
 
 function Chat() {
     const params = useParams()
@@ -15,13 +16,14 @@ function Chat() {
     const [message, setMessage] = useState("");
     const [messages, setMessages] = useState([]);
     const [chatID, setChatID] = useState(params.chatId)
-    const [missedMessages, setMissedMessages]  = useState({})
+    const [missedMessages, setMissedMessages] = useState({})
+    const [invite, setInvite] = useState(false)
 
     const [myRooms, setMyRooms] = useState([])
 
     const roomSwitch = (id) => {
-    console.log(id)
-    setChatID(id)
+        console.log(id)
+        setChatID(id)
     }
 
 
@@ -30,88 +32,103 @@ function Chat() {
             setMessages((prevMessages) => [...prevMessages, data])
         } else if (data.mark === "service") {
             setMissedMessages((prevState) => {
-                return{...prevState, [data.chat]: data.quantity}
+                return {...prevState, [data.chat]: data.quantity}
             })
+        } else if (data.mark === "missed") {
+            setMissedMessages(data.missed)
         }
-
     }
 
 
-
-    useEffect( () =>{
-       axios
-        .get('http://127.0.0.1:8000/chatapi/roomslist/')
-        .then(response => {setMyRooms(response.data)
-        })
+    useEffect(() => {
+        axios
+            .get('http://127.0.0.1:8000/chatapi/roomslist/')
+            .then(response => {
+                setMyRooms(response.data)
+            })
     }, []);
 
-   useEffect( () =>{
-         axios
-          .get(`http://127.0.0.1:8000/chatapi/chathistory/`, {params: {name: chatID}})
-          .then(response => {setMessages(response.data)
-          })
-      }, [chatID]);
+    useEffect(() => {
+        axios
+            .get(`http://127.0.0.1:8000/chatapi/chathistory/`, {params: {name: chatID}})
+            .then(response => {
+                setMessages(response.data)
+            })
+    }, [chatID]);
 
+    useEffect(() => {
+        console.log(`connecting to new room ${chatID}`)
+        const newSocket = new WebSocket(`ws://localhost:8000/ws/chat/${chatID}/?user=${user.user_id}`);
+        setSocket(newSocket);
+        window.history.replaceState("", "", `http://localhost:3000/chat/${chatID}/`)
+        newSocket.onopen = () => console.log("WebSocket connected");
+        newSocket.onclose = () => console.log("WebSocket disconnected");
+        return () => {
+            newSocket.close();
+        };
+    }, [chatID]);
 
-  useEffect(() => {
-    // Connect to the WebSocket server with the username as a query parameter
-      console.log(`connecting to new room ${chatID}`)
-    const newSocket = new WebSocket(`ws://localhost:8000/ws/chat/${chatID}/?user=${user.user_id}`);
-    setSocket(newSocket);
-    window.history.replaceState("", "",`http://localhost:3000/chat/${chatID}/`)
-    newSocket.onopen = () => console.log("WebSocket connected");
-    newSocket.onclose = () => console.log("WebSocket disconnected");
-    return () => {
-      newSocket.close();
+    useEffect(() => {
+        if (socket) {
+            socket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                dispatchData(data)
+            };
+        }
+    }, [socket]);
+
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        if (message && socket) {
+            let jetzt = new Date()
+            const data = {
+                message: message,
+                username: user.username,
+                jetzt: jetzt.getTime(),
+                userid: user.user_id
+            };
+            socket.send(JSON.stringify(data));
+            setMessage("");
+        }
     };
-  }, [chatID]);
 
-  useEffect(() => {
-    if (socket) {
-      socket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-          dispatchData(data)
-      };
+    const modalSendHandler = (e) => {
+        setInvite(true)
     }
-  }, [socket]);
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    if (message && socket) {
-      let jetzt = new Date()
-      const data = {
-        message: message,
-        username: user.username,
-        jetzt: jetzt.getTime(),
-        userid: user.user_id
-      };
-      socket.send(JSON.stringify(data));
-      setMessage("");
+     const onCloseInvite = (e) => {
+        setInvite(false)
     }
-  };
+
+    return (
+        <div className={styled.dashboardwrappper}>
+
+            {invite && <PopupInvite  onCloseModal={onCloseInvite}/>}
 
 
-  return (
-      <div className={styled.dashboardwrappper}>
-       <div className={styled.channelslistwrapper}>
-         <div className={styled.userslistwrapper}>
-          <MyRooms switcher={roomSwitch} currentChat={chatID} rooms={myRooms}  missed={missedMessages}/>
+            <div className={styled.channelslistwrapper}>
+                <div className={styled.userslistwrapper}>
+                    <MyRooms switcher={roomSwitch} currentChat={chatID} rooms={myRooms} missed={missedMessages}/>
+                </div>
+            </div>
+
+            <MessagesDisplay messages={messages} sendHandler={handleSubmit}/>
+
+            <form onSubmit={handleSubmit}>
+                <input type="text" placeholder="Type a message..." value={message}
+                       onChange={(event) => setMessage(event.target.value)}
+                />
+                <button type="submit">Send</button>
+            </form>
+
+            <div>
+                <button type="submit" onClick={modalSendHandler}>INVITE TO CHAT</button>
+            </div>
+
+            <div className={styled.userslistwrapper}>
+                <Participants/>
+            </div>
         </div>
-       </div>
-
-      <MessagesDisplay  messages={messages}  sendHandler={handleSubmit}  />
-
-       <form onSubmit={handleSubmit}>
-          <input type="text" placeholder="Type a message..." value={message}
-              onChange={(event) => setMessage(event.target.value)}
-          />
-          <button type="submit">Send</button>
-        </form>
-
-        <div className={styled.userslistwrapper}>
-          <Participants />
-        </div>
-  </div>
-  );
+    );
 }
+
 export default Chat;
