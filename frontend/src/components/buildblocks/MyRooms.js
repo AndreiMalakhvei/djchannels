@@ -5,27 +5,29 @@ import styled from "./MyRoom.module.css"
 
 
 const MyRooms = (props) => {
-    const [myRooms, setMyRooms] = useState([])
+    // const [myRooms, setMyRooms] = useState([])
 
     const clickHandler = (e) => {
         e.preventDefault()
         props.switcher(e.target.value)
     }
 
-    useEffect( () =>{
-       axios
-        .get('http://127.0.0.1:8000/chatapi/roomslist/')
-        .then(response => {setMyRooms(response.data)
-        console.log(response.data)})
-    }, []);
+    console.log(props.missed)
+
+    // useEffect( () =>{
+    //    axios
+    //     .get('http://127.0.0.1:8000/chatapi/roomslist/')
+    //     .then(response => {setMyRooms(response.data)
+    //     console.log(response.data)})
+    // }, []);
 
     return (
         <React.Fragment>
             <div>
                 <p>List of Rooms</p>
-                {myRooms &&
+                {props.rooms &&
                     <div>
-                        {myRooms.map(
+                        {props.rooms.map(
                             room =>
                                 <div key={room.name}>
                                     <button onClick={clickHandler} className={styled.itemwrapper}
