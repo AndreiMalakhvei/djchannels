@@ -27,6 +27,16 @@ fire_db = firebase.database()
 
 TIMEOUT_FOR_CACHING_MESSAGES = 60 * 60
 
+
+def get_unread(user):
+    users_unread = {}
+    all_records = fire_db.child('main').child('unread').get().val()
+    for room, record in all_records.items():
+        if user in record.keys():
+            val = 0 if not record[user] else len(record[user])
+            users_unread.update({room: val})
+    return users_unread
+
 class ChatConsumer(WebsocketConsumer):
 
     service_group = "service"
@@ -47,6 +57,9 @@ class ChatConsumer(WebsocketConsumer):
             self.service_group, self.channel_name
         )
 
+        someval = get_unread(self.fire_id)
+        print(someval)
+
         #  check if entered room and user (as room member) exist in RealTimeDB
         room_exists = fire_db.child('main').child('unread').child(self.room_name).get().val()
         if not room_exists:
@@ -58,6 +71,8 @@ class ChatConsumer(WebsocketConsumer):
                 fire_db.child('main').child('unread').child(self.room_name).update({self.fire_id: 0})
 
 
+
+        # delete unread messages for the chat while ntering the chat
         users_unread_messages = fire_db.child('main').child('unread').child(self.room_name).child(self.fire_id).get().val()
         if users_unread_messages:
             fire_db.child('main').child('unread').child(self.room_name).child(self.fire_id).set(0)
@@ -123,6 +138,7 @@ class ChatConsumer(WebsocketConsumer):
 
 
 
+
         # Send message to room group
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name, forward_to_front)
@@ -169,6 +185,7 @@ class ChatConsumer(WebsocketConsumer):
             for x in event['notifications']:
                 if x == self.fire_id and event['notifications'][x]:
                     quantity = len(event['notifications'][x])
+
                     self.send(text_data=json.dumps({"mark": 'service',
                                                     "chat": event['chat'],
                                                     "quantity": quantity
