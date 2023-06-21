@@ -12,14 +12,6 @@ const MyRooms = (props) => {
         props.switcher(e.target.value)
     }
 
-    console.log(props.missed)
-
-    // useEffect( () =>{
-    //    axios
-    //     .get('http://127.0.0.1:8000/chatapi/roomslist/')
-    //     .then(response => {setMyRooms(response.data)
-    //     console.log(response.data)})
-    // }, []);
 
     return (
         <React.Fragment>

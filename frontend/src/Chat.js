@@ -70,19 +70,7 @@ function Chat() {
     if (socket) {
       socket.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        console.log(data)
           dispatchData(data)
-
-          // if (data.mark === "service") {
-          //     const f = {[data.chat]: data.quantity}
-          //     console.log(f)
-          //     setMessages((prevMessages) => [...prevMessages, data])
-          //     console.log(messages)
-          //     }
-          //
-          // else {
-          //     setMessages((prevMessages) => [...prevMessages, data]);
-          // }
       };
     }
   }, [socket]);

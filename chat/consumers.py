@@ -47,6 +47,7 @@ class ChatConsumer(WebsocketConsumer):
             self.service_group, self.channel_name
         )
 
+        #  check if entered room and user (as room member) exist in RealTimeDB
         room_exists = fire_db.child('main').child('unread').child(self.room_name).get().val()
         if not room_exists:
             fire_db.child('main').child('unread').update({self.room_name: None})
@@ -56,15 +57,12 @@ class ChatConsumer(WebsocketConsumer):
             if not user_record:
                 fire_db.child('main').child('unread').child(self.room_name).update({self.fire_id: 0})
 
-        # Заменить на Firebase
-        # cached_data = cache.get("act_%s" % self.room_name)
-        # if cached_data:
-        #     cached_data.update({self.channel_name: []})
-        #     cache.set("act_%s" % self.room_name, cached_data)
-        # else:
-        #     cache.set("act_%s" % self.room_name, {self.channel_name: []})
-        #
-        # print(f'changes in ACT_ROOM {self.room_name} : {cache.get("act_%s" % self.room_name)}'
+
+        users_unread_messages = fire_db.child('main').child('unread').child(self.room_name).child(self.fire_id).get().val()
+        if users_unread_messages:
+            fire_db.child('main').child('unread').child(self.room_name).child(self.fire_id).set(0)
+
+
 
         self.accept()
 
@@ -122,15 +120,6 @@ class ChatConsumer(WebsocketConsumer):
             fire_db.child('main').child('unread').child(self.room_name).set(users_notify)
 
 
-        # Заменить на Firebase
-        # users_to_notify = cache.get("act_%s" % self.room_name)
-        # if users_to_notify:
-        #     for x in users_to_notify:
-        #         if x != self.userid:
-        #             users_to_notify[x].append(hash_store)
-        #     cache.set("act_%s" % self.room_name, users_to_notify)
-        #
-        # print(f'changes in ACT_ROOM {self.room_name} : {cache.get("act_%s" % self.room_name)}'
 
 
 
