@@ -143,7 +143,8 @@ class ChatConsumer(WebsocketConsumer):
             self.service_group, {
                 "type": "chat.service",
                 "notifications": users_notify,
-                "author": self.fire_id
+                "author": self.fire_id,
+                "chat": self.room_name
             })
 
         # async_to_sync(self.channel_layer.group_send)(
@@ -180,7 +181,7 @@ class ChatConsumer(WebsocketConsumer):
                 if x == self.fire_id and event['notifications'][x]:
                     quantity = len(event['notifications'][x])
                     self.send(text_data=json.dumps({"mark": 'service',
-                                                    "chat": self.room_name,
+                                                    "chat": event['chat'],
                                                     "quantity": quantity
                                                     }))
                     break

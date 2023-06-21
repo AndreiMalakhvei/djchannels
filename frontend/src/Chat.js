@@ -15,7 +15,7 @@ function Chat() {
     const [message, setMessage] = useState("");
     const [messages, setMessages] = useState([]);
     const [chatID, setChatID] = useState(params.chatId)
-    const [missedMessages, setMissedMessages]  = useState([])
+    const [missedMessages, setMissedMessages]  = useState({})
 
     const [myRooms, setMyRooms] = useState([])
 
@@ -29,7 +29,9 @@ function Chat() {
         if (data.mark === "chat message") {
             setMessages((prevMessages) => [...prevMessages, data])
         } else if (data.mark === "service") {
-            setMissedMessages((prevMessages) => [...prevMessages, data])
+            setMissedMessages((prevState) => {
+                return{...prevState, [data.chat]: data.quantity}
+            })
         }
 
     }

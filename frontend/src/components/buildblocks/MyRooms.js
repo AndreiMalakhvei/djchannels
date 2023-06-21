@@ -32,6 +32,7 @@ const MyRooms = (props) => {
                                 <div key={room.name}>
                                     <button onClick={clickHandler} className={styled.itemwrapper}
                                             value={room.name}>{room.name}</button>
+                                    {room.name in props.missed && <p>{props.missed[room.name]}</p>}
                                     {props.currentChat === room.name && <p>CURRENT</p>}
                                 </div>
                         )}
