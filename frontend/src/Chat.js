@@ -18,6 +18,7 @@ function Chat() {
     const [chatID, setChatID] = useState(params.chatId)
     const [missedMessages, setMissedMessages] = useState({})
     const [invite, setInvite] = useState(false)
+    const [invitations, setInvitations] = useState([])
 
     const [myRooms, setMyRooms] = useState([])
 
@@ -36,6 +37,8 @@ function Chat() {
             })
         } else if (data.mark === "missed") {
             setMissedMessages(data.missed)
+        } else if (data.mark === "invite") {
+            setInvitations((prevMessages) => [...prevMessages, data.data])
         }
     }
 
@@ -95,14 +98,26 @@ function Chat() {
     const modalSendHandler = (e) => {
         setInvite(true)
     }
+
      const onCloseInvite = (e) => {
         setInvite(false)
     }
 
+    const sendInvitations = (data) => {
+        console.log(data)
+        const mess = {
+            "mark": "invite",
+            "data": data
+        }
+        socket.send(JSON.stringify(mess))
+        setInvite(false)
+    }
+
+
     return (
         <div className={styled.dashboardwrappper}>
 
-            {invite && <PopupInvite  onCloseModal={onCloseInvite}/>}
+            {invite && <PopupInvite onCloseModal={onCloseInvite} sendInvitations={sendInvitations}/>}
 
 
             <div className={styled.channelslistwrapper}>
@@ -120,15 +135,31 @@ function Chat() {
                 <button type="submit">Send</button>
             </form>
 
+
             <div>
                 <button type="submit" onClick={modalSendHandler}>INVITE TO CHAT</button>
             </div>
 
+
+            {invitations &&
+                <div>
+                    {invitations.map((invitation, index) =>
+                        <div>
+                            <h4>Invitation to {invitation.chat} recieved from {invitation.author}</h4>
+                            <button value={index}>ACCEPT</button>
+                            <button value={index}>DECLINE</button>
+                        </div>
+                    )
+                    }
+                </div>
+            }
+
             <div className={styled.userslistwrapper}>
                 <Participants/>
             </div>
+
         </div>
-    );
-}
+                    );
+                    }
 
 export default Chat;

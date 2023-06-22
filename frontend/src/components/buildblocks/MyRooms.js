@@ -11,7 +11,7 @@ const MyRooms = (props) => {
         e.preventDefault()
         props.switcher(e.target.value)
     }
-    console.log(props.missed)
+
 
 
     return (

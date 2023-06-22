@@ -1,11 +1,11 @@
 from rest_framework.response import Response
 from rest_framework import generics
 from chat.models import Room, Message, RoomMember
-from chat.serializers import RoomSerializer, ChatHistorySerializer
+from chat.serializers import RoomSerializer, ChatHistorySerializer, UsersSerializer
 from rest_framework.views import APIView
 from rest_framework.exceptions import ParseError
 from django.core.cache import cache
-
+from django.contrib.auth.models import User
 
 # def index(request):
 #     return render(request, "chat/index.html")
@@ -33,6 +33,9 @@ class ChatHistoryView(APIView):
         cached_messages = cache.get("chat_%s" % name)
         return Response(ChatHistorySerializer(cached_messages, many=True).data)
 
+class UserListView(generics.ListAPIView):
+    queryset = User.objects.all().filter(is_superuser=False)
+    serializer_class = UsersSerializer
 
 
 
