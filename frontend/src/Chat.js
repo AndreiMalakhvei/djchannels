@@ -113,11 +113,20 @@ function Chat() {
         setInvite(false)
     }
 
+    const inviteAccept = (v) => {
+        console.log(v)
+    }
+
+    const inviteDecline = (v) => {
+        console.log(v)
+    }
+
 
     return (
         <div className={styled.dashboardwrappper}>
 
-            {invite && <PopupInvite onCloseModal={onCloseInvite} sendInvitations={sendInvitations}/>}
+            {invite && <PopupInvite onCloseModal={onCloseInvite} sendInvitations={sendInvitations}
+            room={chatID}/>}
 
 
             <div className={styled.channelslistwrapper}>
@@ -146,8 +155,8 @@ function Chat() {
                     {invitations.map((invitation, index) =>
                         <div>
                             <h4>Invitation to {invitation.chat} recieved from {invitation.author}</h4>
-                            <button value={index}>ACCEPT</button>
-                            <button value={index}>DECLINE</button>
+                            <button value={index} onClick={inviteAccept}>ACCEPT</button>
+                            <button value={index} onClick={inviteDecline}>DECLINE</button>
                         </div>
                     )
                     }

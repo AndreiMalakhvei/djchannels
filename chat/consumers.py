@@ -77,12 +77,16 @@ class ChatConsumer(WebsocketConsumer):
             fire_db.child('main').child('unread').child(self.room_name).update({self.fire_id: 0})
         else:
             user_record = fire_db.child('main').child('unread').child(self.room_name).child(self.fire_id).get().val()
+            print(f'****************************{user_record}******************')
             if not user_record:
                 fire_db.child('main').child('unread').child(self.room_name).update({self.fire_id: 0})
         #         если пользователь не зарегестрирован в РТ как участник комнаты
-                # Make DB record that the user is member of the room
-                new_rec = RoomMember(inroom_id= Room.objects.get(name=self.room_name),
-                                    member_id= User.objects.get(id=self.userid))
+
+            if self.fire_id not in room_exists.keys():
+
+        # Make DB record that the user is member of the room
+                new_rec = RoomMember(inroom_id=self.room_name,
+                            member_id=self.userid)
                 new_rec.save()
 
 

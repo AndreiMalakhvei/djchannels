@@ -1,9 +1,10 @@
 import styled from "./PopupInvite.module.css";
-import React, {useEffect, useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import ReactDom from "react-dom";
 import axios from "axios";
 import Select from 'react-select'
 import makeAnimated from 'react-select/animated';
+import ContextStorage from "../../context/contextStorage";
 
 
 const Backdrop = (props) => {
@@ -49,17 +50,18 @@ const Modal = (props) => {
       <footer className={styled.actions}>
         <button className={styled.modalbutton} onClick={props.onCloseModal}>Close</button>
         <button className={chosen.length > 0 ? styled.modalbutton: styled.dis} onClick={sendInvitations}
-        disabled={chosen}>Invite</button>
+        disabled={chosen} >Invite</button>
       </footer>
     </div>
   );
 };
 
 const PopupInvite = (props) => {
+    let {user} = useContext(ContextStorage)
     const [users, setUsers] = useState([])
     useEffect(() => {
         axios
-            .get('http://127.0.0.1:8000/chatapi/userslist/')
+            .get('http://127.0.0.1:8000/chatapi/userslist/', {params: {room:props.room}})
             .then(response => {
                 setUsers(response.data)
             })
