@@ -77,7 +77,7 @@ class ChatConsumer(WebsocketConsumer):
             fire_db.child('main').child('unread').child(self.room_name).update({self.fire_id: 0})
         else:
             user_record = fire_db.child('main').child('unread').child(self.room_name).child(self.fire_id).get().val()
-            print(f'****************************{user_record}******************')
+
             if not user_record:
                 fire_db.child('main').child('unread').child(self.room_name).update({self.fire_id: 0})
         #         если пользователь не зарегестрирован в РТ как участник комнаты
@@ -117,20 +117,29 @@ class ChatConsumer(WebsocketConsumer):
     # Receive message from WebSocket
     def receive(self, text_data=None, bytes_data=None):
         text_data_json = json.loads(text_data)
-        if text_data_json.get("mark", 0):
-            invited_ids = [x["value"] for x in text_data_json["data"]]
-            for x in invited_ids:
+        marked = text_data_json.get("mark", 0)
+        if marked:
+            if marked == "invite":
+                invited_ids = [x["value"] for x in text_data_json["data"]]
+                for x in invited_ids:
 
-                fire_db.child('main').child('invitations').child("user_%s" % x).update({self.fire_id: self.room_name})
+                    fire_db.child('main').child('invitations').child("user_%s" % x).update({self.fire_id: self.room_name})
 
 
-            async_to_sync(self.channel_layer.group_send)(
-                self.service_group, {
-                    "type": "chat.invite",
-                    "ids": invited_ids,
-                    "author": self.userid,
-                    "chat": self.room_name
-                })
+                async_to_sync(self.channel_layer.group_send)(
+                    self.service_group, {
+                        "type": "chat.invite",
+                        "ids": invited_ids,
+                        "author": self.userid,
+                        "chat": self.room_name
+                    })
+            elif marked == "invite_decline":
+                fire_db.child('main').child('invitations').child(self.fire_id).\
+                    child("user_%s" % text_data_json['data']['author']).remove(text_data_json['data']['chat'])
+            # повторяющийся блок кода
+            elif marked == "invite_accept":
+                fire_db.child('main').child('invitations').child(self.fire_id).\
+                    child("user_%s" % text_data_json['data']['author']).remove(text_data_json['data']['chat'])
 
 
         else:

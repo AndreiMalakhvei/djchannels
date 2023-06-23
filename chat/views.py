@@ -19,6 +19,13 @@ class RoomCreateView(generics.CreateAPIView):
     queryset = Room.objects.all()
     serializer_class = RoomSerializer
 
+    def perform_create(self, serializer):
+        q = serializer.save()
+        new_rec = RoomMember(inroom_id=q.name,
+                             member_id=q.owner_id)
+        new_rec.save()
+
+
 class RoomListView(generics.ListAPIView):
     queryset = Room.objects.all()
     serializer_class = RoomSerializer

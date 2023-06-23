@@ -13,15 +13,12 @@ const Backdrop = (props) => {
 
 const Modal = (props) => {
 
-
     const options = []
     props.usersList.map(item => {
         options.push({"value": item.id, "label": item.username})
     })
 
-
     const animatedComponents = makeAnimated();
-
     const [chosen, setChosen] = useState([])
 
     const handleOnChange = (selected) => {
@@ -50,7 +47,7 @@ const Modal = (props) => {
       <footer className={styled.actions}>
         <button className={styled.modalbutton} onClick={props.onCloseModal}>Close</button>
         <button className={chosen.length > 0 ? styled.modalbutton: styled.dis} onClick={sendInvitations}
-        disabled={chosen} >Invite</button>
+        disabled={!chosen} >Invite</button>
       </footer>
     </div>
   );

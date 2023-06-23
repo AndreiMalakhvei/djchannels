@@ -7,6 +7,7 @@ import Participants from "./components/buildblocks/Participants";
 import MyRooms from "./components/buildblocks/MyRooms";
 import MessagesDisplay from "./components/buildblocks/MessagesDisplay";
 import PopupInvite from "./components/buildblocks/PopupInvite";
+import Invitations from "./components/buildblocks/Invitations";
 
 function Chat() {
     const params = useParams()
@@ -20,10 +21,10 @@ function Chat() {
     const [invite, setInvite] = useState(false)
     const [invitations, setInvitations] = useState([])
 
+
     const [myRooms, setMyRooms] = useState([])
 
     const roomSwitch = (id) => {
-        console.log(id)
         setChatID(id)
     }
 
@@ -49,7 +50,7 @@ function Chat() {
             .then(response => {
                 setMyRooms(response.data)
             })
-    }, []);
+    }, [chatID]);
 
     useEffect(() => {
         axios
@@ -104,7 +105,7 @@ function Chat() {
     }
 
     const sendInvitations = (data) => {
-        console.log(data)
+        console.log("sending invitation")
         const mess = {
             "mark": "invite",
             "data": data
@@ -113,12 +114,29 @@ function Chat() {
         setInvite(false)
     }
 
-    const inviteAccept = (v) => {
-        console.log(v)
+    const inviteAccept = (e, data) => {
+        const mess = {
+            "mark": "invite_accept",
+            "data": data
+        }
+        socket.send(JSON.stringify(mess))
+        setInvitations( (current) =>
+            current.filter( (item) => item.chat !== data.chat && item.author !== data.author)
+        )
+        setChatID(data.chat)
+
+
     }
 
-    const inviteDecline = (v) => {
-        console.log(v)
+    const inviteDecline = (e, data) => {
+        const mess = {
+            "mark": "invite_decline",
+            "data": data
+        }
+        socket.send(JSON.stringify(mess))
+        setInvitations( (current) =>
+            current.filter( (item) => item.chat !== data.chat && item.author !== data.author)
+        )
     }
 
 
@@ -144,23 +162,13 @@ function Chat() {
                 <button type="submit">Send</button>
             </form>
 
-
             <div>
                 <button type="submit" onClick={modalSendHandler}>INVITE TO CHAT</button>
             </div>
 
 
-            {invitations &&
-                <div>
-                    {invitations.map((invitation, index) =>
-                        <div>
-                            <h4>Invitation to {invitation.chat} recieved from {invitation.author}</h4>
-                            <button value={index} onClick={inviteAccept}>ACCEPT</button>
-                            <button value={index} onClick={inviteDecline}>DECLINE</button>
-                        </div>
-                    )
-                    }
-                </div>
+            {invitations.length > 0 &&
+                <Invitations invitationsList={invitations} accepted={inviteAccept} declined={inviteDecline}/>
             }
 
             <div className={styled.userslistwrapper}>
