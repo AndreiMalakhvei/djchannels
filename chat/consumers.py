@@ -15,33 +15,8 @@ import pyrebase
 
 firebase_db = FireBase()
 
-# config = {
-#     'apiKey': "AIzaSyCd2wvYUpRGOmCxqBRa3YtdjAte62VA0-w",
-#     'authDomain': "chat-60128.firebaseapp.com",
-#     'projectId': "chat-60128",
-#     'storageBucket': "chat-60128.appspot.com",
-#     'messagingSenderId': "122065919374",
-#     'appId': "1:122065919374:web:424b17a1c85dd3243c18df",
-#     'measurementId': "G-4VHP970CEM",
-#     'databaseURL': "https://chat-60128-default-rtdb.europe-west1.firebasedatabase.app/",
-#     "serviceAccount": "chat-60128-firebase-adminsdk-mjhg2-c740633904.json"
-# }
-#
-# firebase = pyrebase.initialize_app(config)
-# fire_db = firebase.database()
-
 TIMEOUT_FOR_CACHING_MESSAGES = 60 * 60
 
-
-# def get_unread(user):
-#     users_unread = {}
-#     all_records = fire_db.child('main').child('unread').get().val()
-#     if all_records:
-#         for room, record in all_records.items():
-#             if user in record.keys():
-#                 val = 0 if not record[user] else len(record[user])
-#                 users_unread.update({room: val})
-#     return users_unread
 
 class ChatConsumer(WebsocketConsumer):
 
@@ -160,7 +135,7 @@ class ChatConsumer(WebsocketConsumer):
             }
             forward_to_front = message_to_cache | message_extra_data
 
-            users_notify = fire_db.child('main').child('unread').child(self.room_name).get().val()
+            users_notify = firebase_db.fire_db.child('main').child('unread').child(self.room_name).get().val()
             if users_notify:
                 for x in users_notify:
                     if x != self.fire_id:
@@ -168,7 +143,7 @@ class ChatConsumer(WebsocketConsumer):
                             users_notify[x].append(hash_store)
                         else:
                             users_notify[x] = [hash_store, ]
-                fire_db.child('main').child('unread').child(self.room_name).set(users_notify)
+                firebase_db.fire_db.child('main').child('unread').child(self.room_name).set(users_notify)
 
             # Send message to room group
             async_to_sync(self.channel_layer.group_send)(

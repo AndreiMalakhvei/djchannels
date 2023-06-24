@@ -12,13 +12,13 @@ const Home= () => {
     const [roomsList, setRoomsList] = useState([])
 
 
-    useEffect(() => {
-            axios
-                .get(`http://127.0.0.1:8000/chatapi/unread/`, {params: {user: user.user_id}})
-                .then(response => {
-                    setTotalMissed(response.data.total_missed)
-                })
-        }, []);
+    // useEffect(() => {
+    //         axios
+    //             .get(`http://127.0.0.1:8000/chatapi/unread/`, {params: {user: user.user_id}})
+    //             .then(response => {
+    //                 setTotalMissed(response.data.total_missed)
+    //             })
+    //     }, []);
 
 
 
