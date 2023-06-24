@@ -9,36 +9,39 @@ from chat.tasks import messages_to_db
 from mysite.settings import BASE_DIR
 from chat.models import User, Room, RoomMember
 from django.db.models import Q
+from chat.firebase.fire import FireBase
 
 import pyrebase
 
-config = {
-    'apiKey': "AIzaSyCd2wvYUpRGOmCxqBRa3YtdjAte62VA0-w",
-    'authDomain': "chat-60128.firebaseapp.com",
-    'projectId': "chat-60128",
-    'storageBucket': "chat-60128.appspot.com",
-    'messagingSenderId': "122065919374",
-    'appId': "1:122065919374:web:424b17a1c85dd3243c18df",
-    'measurementId': "G-4VHP970CEM",
-    'databaseURL': "https://chat-60128-default-rtdb.europe-west1.firebasedatabase.app/",
-    "serviceAccount": "chat-60128-firebase-adminsdk-mjhg2-c740633904.json"
-}
+firebase_db = FireBase()
 
-firebase = pyrebase.initialize_app(config)
-fire_db = firebase.database()
+# config = {
+#     'apiKey': "AIzaSyCd2wvYUpRGOmCxqBRa3YtdjAte62VA0-w",
+#     'authDomain': "chat-60128.firebaseapp.com",
+#     'projectId': "chat-60128",
+#     'storageBucket': "chat-60128.appspot.com",
+#     'messagingSenderId': "122065919374",
+#     'appId': "1:122065919374:web:424b17a1c85dd3243c18df",
+#     'measurementId': "G-4VHP970CEM",
+#     'databaseURL': "https://chat-60128-default-rtdb.europe-west1.firebasedatabase.app/",
+#     "serviceAccount": "chat-60128-firebase-adminsdk-mjhg2-c740633904.json"
+# }
+#
+# firebase = pyrebase.initialize_app(config)
+# fire_db = firebase.database()
 
 TIMEOUT_FOR_CACHING_MESSAGES = 60 * 60
 
 
-def get_unread(user):
-    users_unread = {}
-    all_records = fire_db.child('main').child('unread').get().val()
-    if all_records:
-        for room, record in all_records.items():
-            if user in record.keys():
-                val = 0 if not record[user] else len(record[user])
-                users_unread.update({room: val})
-    return users_unread
+# def get_unread(user):
+#     users_unread = {}
+#     all_records = fire_db.child('main').child('unread').get().val()
+#     if all_records:
+#         for room, record in all_records.items():
+#             if user in record.keys():
+#                 val = 0 if not record[user] else len(record[user])
+#                 users_unread.update({room: val})
+#     return users_unread
 
 class ChatConsumer(WebsocketConsumer):
 
@@ -49,9 +52,6 @@ class ChatConsumer(WebsocketConsumer):
         self.room_group_name = "chat_%s" % self.room_name
         self.userid = int(self.scope['query_string'].decode('utf-8').lstrip("user="))
         self.fire_id = "user_%s" % self.userid
-
-
-
 
         # Join room group
         async_to_sync(self.channel_layer.group_add)(
@@ -64,27 +64,14 @@ class ChatConsumer(WebsocketConsumer):
         )
 
         # send to front dict with number of unread messages for each room
-        missed_messages = get_unread(self.fire_id)
-
+        missed_messages = firebase_db.get_unread(self.fire_id)
 
         async_to_sync(self.channel_layer.send)(
             self.channel_name, {"type": "chat.missed",
-                                "missed_messages": missed_messages }
-        )
+                                "missed_messages": missed_messages}        )
 
         #  check if entered room and user (as room member) exist in RealTimeDB
-        room_exists = fire_db.child('main').child('unread').child(self.room_name).get().val()
-        if not room_exists:
-            fire_db.child('main').child('unread').update({self.room_name: None})
-            fire_db.child('main').child('unread').child(self.room_name).update({self.fire_id: 0})
-        else:
-            user_record = fire_db.child('main').child('unread').child(self.room_name).child(self.fire_id).get().val()
-
-            if not user_record:
-                fire_db.child('main').child('unread').child(self.room_name).update({self.fire_id: 0})
-        #         если пользователь не зарегестрирован в РТ как участник комнаты
-
-
+        firebase_db.check_room_in_rtdb(self.room_name, self.fire_id)
 
         # Make DB record that the user is member of the room
         if not RoomMember.objects.filter(Q(member_id=self.userid) & Q(inroom_id__exact=self.room_name)).exists():
@@ -92,15 +79,8 @@ class ChatConsumer(WebsocketConsumer):
                         member_id=self.userid)
             new_rec.save()
 
-
-
-
         # delete unread messages for the chat while entering the chat
-        users_unread_messages = fire_db.child('main').child('unread').child(self.room_name).child(self.fire_id).get().val()
-        if users_unread_messages:
-            fire_db.child('main').child('unread').child(self.room_name).child(self.fire_id).set(0)
-
-
+        firebase_db.delete_unread_room_enter_leave(self.room_name, self.fire_id)
 
         self.accept()
 
@@ -111,10 +91,7 @@ class ChatConsumer(WebsocketConsumer):
         )
 
         # delete unread messages for the chat while leaving the chat
-        users_unread_messages = fire_db.child('main').child('unread').child(self.room_name).child(
-            self.fire_id).get().val()
-        if users_unread_messages:
-            fire_db.child('main').child('unread').child(self.room_name).child(self.fire_id).set(0)
+        firebase_db.delete_unread_room_enter_leave(self.room_name, self.fire_id)
 
 
     # Receive message from WebSocket
@@ -126,7 +103,7 @@ class ChatConsumer(WebsocketConsumer):
                 invited_ids = [x["value"] for x in text_data_json["data"]]
                 for x in invited_ids:
 
-                    fire_db.child('main').child('invitations').child("user_%s" % x).update({self.room_name: self.fire_id})
+                    firebase_db.fire_db.child('main').child('invitations').child("user_%s" % x).update({self.room_name: self.fire_id})
 
 
                 async_to_sync(self.channel_layer.group_send)(
@@ -137,20 +114,16 @@ class ChatConsumer(WebsocketConsumer):
                         "chat": self.room_name
                     })
             elif marked == "invite_decline":
-                fire_db.child('main').child('invitations').child(self.fire_id).\
-                    child(text_data_json['data']['chat']).remove("user_%s" % text_data_json['data']['author'])
-            # повторяющийся блок кода
+                firebase_db.delete_invitation(self.fire_id, text_data_json['data']['author'],
+                                              text_data_json['data']['chat'])
             elif marked == "invite_accept":
-                fire_db.child('main').child('invitations').child(self.fire_id).\
-                    child(text_data_json['data']['chat']).remove("user_%s" % text_data_json['data']['author'])
+                firebase_db.delete_invitation(self.fire_id, text_data_json['data']['author'],
+                                              text_data_json['data']['chat'])
             elif marked == "leave_chat":
                 RoomMember.objects.filter(Q(member_id=self.userid) & Q(inroom_id__exact=text_data_json['chat'])).delete()
                 print()
-                fire_db.child('main').child('unread').child(text_data_json['chat']).remove(self.fire_id)
+                firebase_db.fire_db.child('main').child('unread').child(text_data_json['chat']).remove(self.fire_id)
                 print()
-
-
-
 
         else:
 
@@ -197,11 +170,6 @@ class ChatConsumer(WebsocketConsumer):
                             users_notify[x] = [hash_store, ]
                 fire_db.child('main').child('unread').child(self.room_name).set(users_notify)
 
-
-
-
-
-
             # Send message to room group
             async_to_sync(self.channel_layer.group_send)(
                 self.room_group_name, forward_to_front)
@@ -214,7 +182,6 @@ class ChatConsumer(WebsocketConsumer):
                     "author": self.fire_id,
                     "chat": self.room_name
                 })
-
 
     # Receive message from room group
     def chat_message(self, event):
@@ -234,7 +201,6 @@ class ChatConsumer(WebsocketConsumer):
                                         "userid": userid,
                                         "mark": "chat message"
                                         }))
-
 
     def chat_service(self, event):
         if event['author'] != self.fire_id:

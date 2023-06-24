@@ -34,12 +34,12 @@ function Chat() {
         setSocket(newSocket);
         window.history.replaceState("", "", `http://localhost:3000/chat/${chatID}/`)
 
-        axios
-            .get('http://127.0.0.1:8000/chatapi/roomslist/', {params: {user: user.user_id}})
-            .then(response => {
-
-                setMyRooms(response.data)
-            })
+        // axios
+        //     .get('http://127.0.0.1:8000/chatapi/roomslist/', {params: {user: user.user_id}})
+        //     .then(response => {
+        //
+        //         setMyRooms(response.data)
+        //     })
 
         newSocket.onopen = () => console.log("WebSocket connected");
         newSocket.onclose = () => console.log("WebSocket disconnected");

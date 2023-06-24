@@ -6,7 +6,9 @@ from rest_framework.views import APIView
 from rest_framework.exceptions import ParseError
 from django.core.cache import cache
 from django.contrib.auth.models import User
-from chat.consumers import get_unread
+from chat.firebase.fire import FireBase
+
+firebase_db = FireBase()
 
 # def index(request):
 #     return render(request, "chat/index.html")
@@ -77,7 +79,7 @@ class GetUnread(APIView):
            user = request.GET['user']
         except (KeyError, ValueError):
             raise ParseError(detail="USER parameters is required")
-        unread = get_unread("user_%s" % user)
+        unread = firebase_db.get_unread("user_%s" % user)
         cnt_missed = sum(unread.values())
         return Response({'total_missed': cnt_missed})
 
