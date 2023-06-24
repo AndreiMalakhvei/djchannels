@@ -1,4 +1,4 @@
-from chat.firebase.credentials import FIRE_CONFIG
+from chat.firedb.credentials import FIRE_CONFIG
 import pyrebase
 
 

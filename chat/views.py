@@ -1,12 +1,12 @@
 from rest_framework.response import Response
 from rest_framework import generics
-from chat.models import Room, Message, RoomMember
+from chat.models import Room, RoomMember
 from chat.serializers import RoomSerializer, ChatHistorySerializer, UsersSerializer
 from rest_framework.views import APIView
 from rest_framework.exceptions import ParseError
 from django.core.cache import cache
 from django.contrib.auth.models import User
-from chat.firebase.fire import FireBase
+from chat.firedb.fire import FireBase
 
 firebase_db = FireBase()
 
@@ -95,7 +95,7 @@ config = {
     'appId': "1:122065919374:web:424b17a1c85dd3243c18df",
     'measurementId': "G-4VHP970CEM",
     'databaseURL': "https://chat-60128-default-rtdb.europe-west1.firebasedatabase.app/",
-    "serviceAccount": "chat-60128-firebase-adminsdk-mjhg2-c740633904.json"
+    "serviceAccount": "chat-60128-dbs-adminsdk-mjhg2-c740633904.json"
 }
 
 firebase = pyrebase.initialize_app(config)

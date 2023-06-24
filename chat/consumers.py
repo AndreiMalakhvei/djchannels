@@ -1,17 +1,12 @@
 import json
 from datetime import datetime
 from asgiref.sync import async_to_sync
-from channels.layers import get_channel_layer
 from django.core.cache import cache
 from channels.generic.websocket import WebsocketConsumer
 import hashlib
-from chat.tasks import messages_to_db
-from mysite.settings import BASE_DIR
-from chat.models import User, Room, RoomMember
+from chat.models import RoomMember
 from django.db.models import Q
-from chat.firebase.fire import FireBase
-
-import pyrebase
+from chat.firedb.fire import FireBase
 
 firebase_db = FireBase()
 
