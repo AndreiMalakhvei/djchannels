@@ -1,11 +1,11 @@
 import {NavLink} from "react-router-dom";
-import {useContext} from "react";
+import {useContext, useEffect, useState} from "react";
 import ContextStorage from "../../context/contextStorage";
+import axios from "axios";
 
 const Header = () => {
 
     let {user, logoutUser} = useContext(ContextStorage)
-    console.log(user)
 
     return (
         <nav>
@@ -20,6 +20,7 @@ const Header = () => {
                 { user &&
                     <li className="menu-element">
                         <p>Welcome, {user.username} !</p>
+
                 </li>
                 }
 

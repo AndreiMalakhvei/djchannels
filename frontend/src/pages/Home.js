@@ -8,8 +8,19 @@ const Home= () => {
     let {user} = useContext(ContextStorage)
     const [error, setError] = useState()
     const history = useHistory();
-
+    const [totalMissed, setTotalMissed] = useState(0)
     const [roomsList, setRoomsList] = useState([])
+
+
+    useEffect(() => {
+            axios
+                .get(`http://127.0.0.1:8000/chatapi/unread/`, {params: {user: user.user_id}})
+                .then(response => {
+                    setTotalMissed(response.data.total_missed)
+                })
+        }, []);
+
+
 
      useEffect( () =>{
        axios
@@ -75,6 +86,14 @@ const Home= () => {
                         </div>
                 )}
             </div> }
+
+            { user &&
+                    <li className="menu-element">
+                        <p>Welcome, {user.username} !</p>
+                        <p>You`ve got {totalMissed} unread messages</p>
+                </li>
+                }
+
         </div>
     )
 }

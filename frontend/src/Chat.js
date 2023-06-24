@@ -28,6 +28,47 @@ function Chat() {
         setChatID(id)
     }
 
+    useEffect(() => {
+        console.log(`connecting to new room ${chatID}`)
+        const newSocket = new WebSocket(`ws://localhost:8000/ws/chat/${chatID}/?user=${user.user_id}`);
+        setSocket(newSocket);
+        window.history.replaceState("", "", `http://localhost:3000/chat/${chatID}/`)
+
+        axios
+            .get('http://127.0.0.1:8000/chatapi/roomslist/', {params: {user: user.user_id}})
+            .then(response => {
+
+                setMyRooms(response.data)
+            })
+
+        newSocket.onopen = () => console.log("WebSocket connected");
+        newSocket.onclose = () => console.log("WebSocket disconnected");
+        return () => {
+            newSocket.close();
+        };
+    }, [chatID]);
+
+
+    useEffect(() => {
+        axios
+            .get('http://127.0.0.1:8000/chatapi/roomslist/', {params: {user: user.user_id}})
+            .then(response => {
+
+                setMyRooms(response.data)
+            })
+    }, [chatID]);
+
+
+    useEffect(() => {
+        axios
+            .get('http://127.0.0.1:8000/chatapi/getinvitations/', {params: {user: user.user_id}})
+            .then(response => {
+                console.log(response.data)
+                setInvitations(response.data)
+            })
+    }, [chatID]);
+
+
 
     const dispatchData = (data) => {
         if (data.mark === "chat message") {
@@ -44,13 +85,6 @@ function Chat() {
     }
 
 
-    useEffect(() => {
-        axios
-            .get('http://127.0.0.1:8000/chatapi/roomslist/')
-            .then(response => {
-                setMyRooms(response.data)
-            })
-    }, [chatID]);
 
     useEffect(() => {
         axios
@@ -58,18 +92,6 @@ function Chat() {
             .then(response => {
                 setMessages(response.data)
             })
-    }, [chatID]);
-
-    useEffect(() => {
-        console.log(`connecting to new room ${chatID}`)
-        const newSocket = new WebSocket(`ws://localhost:8000/ws/chat/${chatID}/?user=${user.user_id}`);
-        setSocket(newSocket);
-        window.history.replaceState("", "", `http://localhost:3000/chat/${chatID}/`)
-        newSocket.onopen = () => console.log("WebSocket connected");
-        newSocket.onclose = () => console.log("WebSocket disconnected");
-        return () => {
-            newSocket.close();
-        };
     }, [chatID]);
 
     useEffect(() => {
@@ -105,7 +127,6 @@ function Chat() {
     }
 
     const sendInvitations = (data) => {
-        console.log("sending invitation")
         const mess = {
             "mark": "invite",
             "data": data
@@ -123,10 +144,21 @@ function Chat() {
         setInvitations( (current) =>
             current.filter( (item) => item.chat !== data.chat && item.author !== data.author)
         )
+
         setChatID(data.chat)
 
 
     }
+
+    const leaveChat = (e) => {
+        const mess = {
+            "mark": "leave_chat",
+            "chat": chatID
+        }
+        socket.send(JSON.stringify(mess))
+        roomSwitch(myRooms[0].name)
+    }
+
 
     const inviteDecline = (e, data) => {
         const mess = {
@@ -173,6 +205,11 @@ function Chat() {
 
             <div className={styled.userslistwrapper}>
                 <Participants/>
+            </div>
+
+
+            <div>
+                <button type="submit" onClick={leaveChat}>LEAVE CURRENT CHAT</button>
             </div>
 
         </div>

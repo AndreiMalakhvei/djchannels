@@ -15,6 +15,7 @@ export const AuthProvider = ({children}) => {
         ? jwt_decode(localStorage.getItem('authTokens')) : null)
     let [loading, setLoading] = useState(false)
 
+
     const history = useHistory()
 
     const handleLogin = async (e) => {

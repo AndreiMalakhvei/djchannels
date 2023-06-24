@@ -8,6 +8,7 @@ import hashlib
 from chat.tasks import messages_to_db
 from mysite.settings import BASE_DIR
 from chat.models import User, Room, RoomMember
+from django.db.models import Q
 
 import pyrebase
 
@@ -32,10 +33,11 @@ TIMEOUT_FOR_CACHING_MESSAGES = 60 * 60
 def get_unread(user):
     users_unread = {}
     all_records = fire_db.child('main').child('unread').get().val()
-    for room, record in all_records.items():
-        if user in record.keys():
-            val = 0 if not record[user] else len(record[user])
-            users_unread.update({room: val})
+    if all_records:
+        for room, record in all_records.items():
+            if user in record.keys():
+                val = 0 if not record[user] else len(record[user])
+                users_unread.update({room: val})
     return users_unread
 
 class ChatConsumer(WebsocketConsumer):
@@ -82,12 +84,13 @@ class ChatConsumer(WebsocketConsumer):
                 fire_db.child('main').child('unread').child(self.room_name).update({self.fire_id: 0})
         #         если пользователь не зарегестрирован в РТ как участник комнаты
 
-            if self.fire_id not in room_exists.keys():
+
 
         # Make DB record that the user is member of the room
-                new_rec = RoomMember(inroom_id=self.room_name,
-                            member_id=self.userid)
-                new_rec.save()
+        if not RoomMember.objects.filter(Q(member_id=self.userid) & Q(inroom_id__exact=self.room_name)).exists():
+            new_rec = RoomMember(inroom_id=self.room_name,
+                        member_id=self.userid)
+            new_rec.save()
 
 
 
@@ -123,7 +126,7 @@ class ChatConsumer(WebsocketConsumer):
                 invited_ids = [x["value"] for x in text_data_json["data"]]
                 for x in invited_ids:
 
-                    fire_db.child('main').child('invitations').child("user_%s" % x).update({self.fire_id: self.room_name})
+                    fire_db.child('main').child('invitations').child("user_%s" % x).update({self.room_name: self.fire_id})
 
 
                 async_to_sync(self.channel_layer.group_send)(
@@ -135,11 +138,18 @@ class ChatConsumer(WebsocketConsumer):
                     })
             elif marked == "invite_decline":
                 fire_db.child('main').child('invitations').child(self.fire_id).\
-                    child("user_%s" % text_data_json['data']['author']).remove(text_data_json['data']['chat'])
+                    child(text_data_json['data']['chat']).remove("user_%s" % text_data_json['data']['author'])
             # повторяющийся блок кода
             elif marked == "invite_accept":
                 fire_db.child('main').child('invitations').child(self.fire_id).\
-                    child("user_%s" % text_data_json['data']['author']).remove(text_data_json['data']['chat'])
+                    child(text_data_json['data']['chat']).remove("user_%s" % text_data_json['data']['author'])
+            elif marked == "leave_chat":
+                RoomMember.objects.filter(Q(member_id=self.userid) & Q(inroom_id__exact=text_data_json['chat'])).delete()
+                print()
+                fire_db.child('main').child('unread').child(text_data_json['chat']).remove(self.fire_id)
+                print()
+
+
 
 
         else:

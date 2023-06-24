@@ -6,6 +6,8 @@ import styled from "./MyRoom.module.css"
 
 const MyRooms = (props) => {
     // const [myRooms, setMyRooms] = useState([])
+console.log("UPDATING MYROOMS")
+    console.log(props.rooms)
 
     const clickHandler = (e) => {
         e.preventDefault()

@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.exceptions import ParseError
 from django.core.cache import cache
 from django.contrib.auth.models import User
+from chat.consumers import get_unread
 
 # def index(request):
 #     return render(request, "chat/index.html")
@@ -30,6 +31,18 @@ class RoomListView(generics.ListAPIView):
     queryset = Room.objects.all()
     serializer_class = RoomSerializer
 
+    def get_queryset(self):
+        if self.request.query_params:
+            try:
+                user = (self.request.query_params.get('user'))
+            except (ValueError, TypeError):
+                raise ParseError(detail="'user parameter is invalid")
+            user_member_of = RoomMember.objects.filter(member_id=user).values('inroom_id')
+            my_rooms = Room.objects.filter(name__in=user_member_of)
+
+            return my_rooms
+        return Room.objects.all()
+
 
 class ChatHistoryView(APIView):
     def get(self, request):
@@ -42,7 +55,6 @@ class ChatHistoryView(APIView):
 
 
 class UserListView(generics.ListAPIView):
-    queryset = User.objects.all().filter(is_superuser=False)
     serializer_class = UsersSerializer
 
     def get_queryset(self):
@@ -58,3 +70,45 @@ class UserListView(generics.ListAPIView):
             return other_users
         return User.objects.all().filter(is_superuser=False)
 
+
+class GetUnread(APIView):
+    def get(self, request):
+        try:
+           user = request.GET['user']
+        except (KeyError, ValueError):
+            raise ParseError(detail="USER parameters is required")
+        unread = get_unread("user_%s" % user)
+        cnt_missed = sum(unread.values())
+        return Response({'total_missed': cnt_missed})
+
+
+import pyrebase
+
+config = {
+    'apiKey': "AIzaSyCd2wvYUpRGOmCxqBRa3YtdjAte62VA0-w",
+    'authDomain': "chat-60128.firebaseapp.com",
+    'projectId': "chat-60128",
+    'storageBucket': "chat-60128.appspot.com",
+    'messagingSenderId': "122065919374",
+    'appId': "1:122065919374:web:424b17a1c85dd3243c18df",
+    'measurementId': "G-4VHP970CEM",
+    'databaseURL': "https://chat-60128-default-rtdb.europe-west1.firebasedatabase.app/",
+    "serviceAccount": "chat-60128-firebase-adminsdk-mjhg2-c740633904.json"
+}
+
+firebase = pyrebase.initialize_app(config)
+fire_db = firebase.database()
+
+
+class GetInvitations(APIView):
+    def get(self, request):
+        try:
+           user = request.GET['user']
+        except (KeyError, ValueError):
+            raise ParseError(detail="USER parameters is required")
+        to_front = []
+        invitations = fire_db.child('main').child('invitations').child("user_%s" % user).get().val()
+        if invitations:
+            for (author, chat) in invitations.items():
+                to_front.append({'chat': chat, "author": author})
+        return Response(to_front)

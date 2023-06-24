@@ -1,7 +1,7 @@
 # chat/urls.py
 from django.urls import path
 
-from chat.views import RoomCreateView, RoomListView, ChatHistoryView, UserListView
+from chat.views import RoomCreateView, RoomListView, ChatHistoryView, UserListView, GetUnread, GetInvitations
 
 
 urlpatterns = [
@@ -9,5 +9,7 @@ urlpatterns = [
     path("roomslist/", RoomListView.as_view(), name="roomlist"),
     path("chathistory/", ChatHistoryView.as_view(), name="chathistory"),
     path("userslist/", UserListView.as_view(), name="userslist"),
-    # path("<str:room_name>/", views.room, name="room"),
+    path("unread/", GetUnread.as_view(), name="uread"),
+    path("getinvitations/", GetInvitations.as_view(), name="getinvitations"),
+
 ]
